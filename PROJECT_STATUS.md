@@ -20,3 +20,7 @@ This Linux authoring environment does not contain the .NET SDK and cannot compil
 ## Next iteration
 
 Run the workflow, inspect the first Windows build artifact, then refine record editing UX and add import/export pickers based on hands-on feedback.
+
+## Build history
+
+- GitHub run 33777282923: core library restored and compiled; tests did not compile because the explicit `Xunit` namespace import was missing. Corrected in v0.1.1. The WinUI publish jobs had not run yet because they depend on the test job.

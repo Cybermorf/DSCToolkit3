@@ -1,5 +1,6 @@
 using DSC.Toolkit.Core.Models;
 using DSC.Toolkit.Core.Services;
+using Xunit;
 
 namespace DSC.Toolkit.Tests;
 
