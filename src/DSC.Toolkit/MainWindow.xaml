@@ -79,7 +79,18 @@
                                 <Button Content="Disadvantage" Command="{x:Bind ViewModel.RollCommand}" CommandParameter="Disadvantage"/>
                             </StackPanel>
                             <ListView ItemsSource="{x:Bind ViewModel.Rolls}" MaxHeight="180">
-                                <ListView.ItemTemplate><DataTemplate x:DataType="services:DiceRoll"><TextBlock><Run Text="{x:Bind Expression}"/><Run Text=" = "/><Run Text="{x:Bind Total}"/></TextBlock></DataTemplate></ListView.ItemTemplate>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="services:DiceRoll">
+                                        <Grid ColumnSpacing="8" Padding="2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{x:Bind Expression}" />
+                                            <TextBlock Grid.Column="1" Text="{x:Bind Total}" FontWeight="SemiBold" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
                             </ListView>
                         </StackPanel>
                     </Border>

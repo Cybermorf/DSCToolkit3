@@ -25,3 +25,4 @@ Run the workflow, inspect the first Windows build artifact, then refine record e
 
 - GitHub run 33777282923: core library restored and compiled; tests did not compile because the explicit `Xunit` namespace import was missing. Corrected in v0.1.1. The WinUI publish jobs had not run yet because they depend on the test job.
 - GitHub run 33780948749: xUnit 4 analyzer rule xUnit1051 required the async persistence test to forward the test cancellation token. Corrected all three calls in v0.1.2 without suppressing the analyzer. WinUI publishing still had not run because it depends on successful tests.
+- GitHub run 33782040336: all core tests passed. Both x64 and ARM64 restores succeeded, then the WinUI XBF generator rejected the inline `Run` bindings in the dice-history template at `MainWindow.xaml:82`. Replaced them with conventional bound `TextBlock` elements in v0.1.3.
