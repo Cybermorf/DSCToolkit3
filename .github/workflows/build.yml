@@ -1,0 +1,65 @@
+name: Build and test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Core tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Verify repository portability
+        shell: pwsh
+        run: ./scripts/Test-Portability.ps1
+      - name: Restore tests
+        run: dotnet restore tests/DSC.Toolkit.Tests/DSC.Toolkit.Tests.csproj
+      - name: Test core
+        run: dotnet test tests/DSC.Toolkit.Tests/DSC.Toolkit.Tests.csproj -c Release --no-restore --logger "trx;LogFileName=core-tests.trx"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
+
+  publish:
+    name: Windows ${{ matrix.arch }}
+    needs: test
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runtime: win-x64
+          - arch: ARM64
+            runtime: win-arm64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+      - name: Restore application
+        run: dotnet restore src/DSC.Toolkit/DSC.Toolkit.csproj -r ${{ matrix.runtime }}
+      - name: Publish self-contained application
+        run: dotnet publish src/DSC.Toolkit/DSC.Toolkit.csproj -c Release -r ${{ matrix.runtime }} --self-contained true --no-restore -o artifacts/${{ matrix.runtime }}
+      - name: Verify executable exists
+        shell: pwsh
+        run: if (-not (Test-Path "artifacts/${{ matrix.runtime }}/DSC.Toolkit.exe")) { throw "Published executable was not created." }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DSC-Toolkit-${{ matrix.arch }}
+          path: artifacts/${{ matrix.runtime }}/
+          if-no-files-found: error
