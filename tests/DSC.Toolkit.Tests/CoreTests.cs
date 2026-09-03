@@ -79,10 +79,11 @@ public sealed class CoreTests
             var storage = new CampaignStorage(folder);
             var campaign = new Campaign { Name = "Eternum" };
             campaign.Records.Add(new ToolRecord { Name = "Nyra", Fields = new() { ["Present Temptation"] = "Healing through decay" } });
-            await storage.SaveAsync(campaign);
-            var loaded = await storage.LoadAsync(storage.GetPath(campaign.Id));
+            var cancellationToken = TestContext.Current.CancellationToken;
+            await storage.SaveAsync(campaign, cancellationToken);
+            var loaded = await storage.LoadAsync(storage.GetPath(campaign.Id), cancellationToken);
             Assert.Equal("Nyra", loaded.Records.Single().Name);
-            var imported = await storage.ImportAsync(storage.GetPath(campaign.Id));
+            var imported = await storage.ImportAsync(storage.GetPath(campaign.Id), cancellationToken: cancellationToken);
             Assert.NotEqual(campaign.Id, imported.Id);
         }
         finally
