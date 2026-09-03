@@ -1,0 +1,18 @@
+{
+  "source": "manual.pdf (local only; not distributed)",
+  "sourceFingerprint": "manual(1).pdf - 179 pages - InDesign export 2026-07-25",
+  "chapters": [
+    { "number": 1, "title": "Running the Seven Worlds", "startPage": 7, "status": "indexed" },
+    { "number": 2, "title": "The Seven Locks of Luna", "startPage": 17, "status": "indexed" },
+    { "number": 3, "title": "Shards, Umbrarians, and Corruption", "startPage": 37, "status": "indexed" },
+    { "number": 4, "title": "Interworld Travel and Exploration", "startPage": 53, "status": "indexed" },
+    { "number": 5, "title": "Factions, Conspiracies, and Campaign Clocks", "startPage": 73, "status": "indexed" },
+    { "number": 6, "title": "The Seven Worlds: Cities, Powers, and People", "startPage": 95, "status": "indexed" },
+    { "number": 7, "title": "Rituals, Relics, and Forbidden Magic", "startPage": 121, "status": "indexed" },
+    { "number": 8, "title": "Planetary Challenges and Adventure Design", "startPage": 131, "status": "indexed" },
+    { "number": 9, "title": "Major Antagonists and Hidden Threats", "startPage": 139, "status": "indexed" },
+    { "number": 10, "title": "Campaign Arcs Across the Seven Worlds", "startPage": 147, "status": "indexed" },
+    { "number": 11, "title": "Cosmic Endgames and the Seven Locks", "startPage": 155, "status": "indexed" },
+    { "number": 12, "title": "Game Master Toolkit and Worksheets", "startPage": 163, "endPage": 171, "status": "implemented", "output": "ModuleCatalog.cs" }
+  ]
+}

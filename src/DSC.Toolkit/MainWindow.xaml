@@ -1,0 +1,101 @@
+<Window
+    x:Class="DSC.Toolkit.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="using:DSC.Toolkit.Core.Models"
+    xmlns:services="using:DSC.Toolkit.Core.Services"
+    xmlns:controls="using:DSC.Toolkit.Controls"
+    Title="The Dark Sun Chronicles - DMG Companion">
+    <Grid Background="{StaticResource PageBackgroundBrush}">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="#FF10261E" BorderBrush="{StaticResource GoldBrush}" BorderThickness="0,0,0,1" Padding="20,12">
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="280"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="THE DARK SUN CHRONICLES" Foreground="{StaticResource GoldBrush}" FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock Text="Dungeon Master's Guide Companion" Foreground="{StaticResource SecondaryTextBrush}"/>
+                </StackPanel>
+                <TextBox Grid.Column="1" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay}" PlaceholderText="Search campaign records" AutomationProperties.Name="Global search"/>
+                <Button Grid.Column="2" Content="Search" Command="{x:Bind ViewModel.SearchCommand}"/>
+            </Grid>
+        </Border>
+
+        <NavigationView Grid.Row="1" x:Name="Navigation" PaneDisplayMode="LeftCompact" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" SelectionChanged="Navigation_SelectionChanged" Background="Transparent">
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="Luminaris" Tag="luminaris" Icon="Calendar"/>
+                <NavigationViewItem Content="Umbraria" Tag="umbraria" Icon="People"/>
+                <NavigationViewItem Content="Eternum" Tag="eternum" Icon="Clock"/>
+                <NavigationViewItem Content="Solara" Tag="solara" Icon="World"/>
+                <NavigationViewItem Content="Aetheria" Tag="aetheria" Icon="Map"/>
+                <NavigationViewItem Content="Harmonia" Tag="harmonia" Icon="Repair"/>
+                <NavigationViewItem Content="Celestia" Tag="celestia" Icon="Favorite"/>
+            </NavigationView.MenuItems>
+            <Grid Padding="18" ColumnSpacing="18">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="260"/><ColumnDefinition Width="*"/><ColumnDefinition Width="320"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource PanelStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="{x:Bind ViewModel.SelectedModule.Planet, Mode=OneWay}" Foreground="{StaticResource GoldBrush}" FontSize="24"/>
+                        <TextBlock Text="{x:Bind ViewModel.SelectedModule.Title, Mode=OneWay}" FontSize="18"/>
+                        <TextBlock Text="{x:Bind ViewModel.SelectedModule.Description, Mode=OneWay}" Foreground="{StaticResource SecondaryTextBrush}"/>
+                        <TextBlock Text="Tools" Margin="0,12,0,0" FontWeight="SemiBold"/>
+                        <ListView ItemsSource="{x:Bind ViewModel.SelectedModule.Tools, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedTool, Mode=TwoWay}">
+                            <ListView.ItemTemplate><DataTemplate x:DataType="core:ToolDefinition"><TextBlock Text="{x:Bind Name}" Padding="4"/></DataTemplate></ListView.ItemTemplate>
+                        </ListView>
+                        <Button Content="Add record" Command="{x:Bind ViewModel.AddRecordCommand}" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource PanelStyle}">
+                    <Grid RowSpacing="12">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="180"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{x:Bind ViewModel.SelectedTool.Name, Mode=OneWay, FallbackValue='Select a tool'}" FontSize="24"/>
+                                <TextBlock Text="{x:Bind ViewModel.SelectedTool.Description, Mode=OneWay}" Foreground="{StaticResource SecondaryTextBrush}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <Button Content="New campaign" Command="{x:Bind ViewModel.NewCampaignCommand}"/>
+                                <Button Content="Save" Command="{x:Bind ViewModel.SaveCommand}"/>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Grid.Row="1" Text="Records" Foreground="{StaticResource GoldBrush}" FontSize="18"/>
+                        <ListView Grid.Row="2" ItemsSource="{x:Bind ViewModel.VisibleRecords}" SelectedItem="{x:Bind ViewModel.SelectedRecord, Mode=TwoWay}" SelectionChanged="RecordList_SelectionChanged">
+                            <ListView.ItemTemplate><DataTemplate x:DataType="core:ToolRecord"><StackPanel Padding="6"><TextBlock Text="{x:Bind Name}" FontWeight="SemiBold"/><TextBlock Text="{x:Bind ToolId}" Foreground="{StaticResource SecondaryTextBrush}"/></StackPanel></DataTemplate></ListView.ItemTemplate>
+                        </ListView>
+                        <controls:RecordEditor x:Name="Editor" Grid.Row="3" Margin="0,12,0,0"/>
+                    </Grid>
+                </Border>
+
+                <StackPanel Grid.Column="2" Spacing="18">
+                    <Border Style="{StaticResource PanelStyle}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Dice Roller" Foreground="{StaticResource GoldBrush}" FontSize="20"/>
+                            <TextBox Text="{x:Bind ViewModel.DiceLabel, Mode=TwoWay}" PlaceholderText="Optional label"/>
+                            <TextBox Text="{x:Bind ViewModel.DiceExpression, Mode=TwoWay}" PlaceholderText="2d6+3"/>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Button Content="Roll" Command="{x:Bind ViewModel.RollCommand}" CommandParameter="Normal"/>
+                                <Button Content="Advantage" Command="{x:Bind ViewModel.RollCommand}" CommandParameter="Advantage"/>
+                                <Button Content="Disadvantage" Command="{x:Bind ViewModel.RollCommand}" CommandParameter="Disadvantage"/>
+                            </StackPanel>
+                            <ListView ItemsSource="{x:Bind ViewModel.Rolls}" MaxHeight="180">
+                                <ListView.ItemTemplate><DataTemplate x:DataType="services:DiceRoll"><TextBlock><Run Text="{x:Bind Expression}"/><Run Text=" = "/><Run Text="{x:Bind Total}"/></TextBlock></DataTemplate></ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Campaign Tracks" Foreground="{StaticResource GoldBrush}" FontSize="20"/>
+                            <TextBlock Text="One reusable engine for corruption, exposure, resonance, instability, and faction pressure." Foreground="{StaticResource SecondaryTextBrush}"/>
+                            <Button Content="Add configurable track" Command="{x:Bind ViewModel.AddTrackCommand}"/>
+                            <TextBlock Text="{x:Bind ViewModel.Campaign.Tracks.Count, Mode=OneWay}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </NavigationView>
+        <Border Grid.Row="2" Background="#FF10261E" Padding="18,8" BorderBrush="{StaticResource GoldBrush}" BorderThickness="0,1,0,0">
+            <Grid><TextBlock Text="{x:Bind ViewModel.Status, Mode=OneWay}"/><TextBlock Text="{x:Bind ViewModel.Campaign.Name, Mode=OneWay}" HorizontalAlignment="Right"/></Grid>
+        </Border>
+    </Grid>
+</Window>
