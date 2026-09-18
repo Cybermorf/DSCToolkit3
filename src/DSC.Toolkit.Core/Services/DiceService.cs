@@ -33,18 +33,29 @@ public sealed class DiceService : IDiceService
         if (mode != RollMode.Normal && (parsed.Count != 1 || parsed.Sides != 20))
             throw new InvalidOperationException("Advantage and disadvantage require exactly 1d20.");
 
-        var first = RollSet(parsed);
+        var first = RollSet(parsed, out var firstTotal);
         IReadOnlyList<int>? discarded = null;
         if (mode != RollMode.Normal)
         {
-            var second = RollSet(parsed);
-            var keepFirst = mode == RollMode.Advantage ? first.Sum() >= second.Sum() : first.Sum() <= second.Sum();
+            var second = RollSet(parsed, out var secondTotal);
+            var keepFirst = mode == RollMode.Advantage ? firstTotal >= secondTotal : firstTotal <= secondTotal;
             discarded = keepFirst ? second : first;
             first = keepFirst ? first : second;
+            firstTotal = keepFirst ? firstTotal : secondTotal;
         }
-        return new(DateTimeOffset.UtcNow, expression, label?.Trim() ?? "", mode, first, parsed.Modifier, first.Sum() + parsed.Modifier, discarded);
+        return new(DateTimeOffset.UtcNow, expression, label?.Trim() ?? "", mode, first, parsed.Modifier, firstTotal + parsed.Modifier, discarded);
     }
 
-    private static List<int> RollSet(DiceExpression expression) =>
-        Enumerable.Range(0, expression.Count).Select(_ => RandomNumberGenerator.GetInt32(1, expression.Sides + 1)).ToList();
+    private static List<int> RollSet(DiceExpression expression, out int total)
+    {
+        var results = new List<int>(expression.Count);
+        total = 0;
+        for (var index = 0; index < expression.Count; index++)
+        {
+            var value = RandomNumberGenerator.GetInt32(1, expression.Sides + 1);
+            results.Add(value);
+            total += value;
+        }
+        return results;
+    }
 }

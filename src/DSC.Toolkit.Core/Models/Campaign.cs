@@ -32,6 +32,7 @@ public sealed record RecordLink(Guid SourceId, Guid TargetId, string Relationshi
 
 public sealed class Track
 {
+    public const int MaxHistoryEntries = 1000;
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = "New Track";
     public string Description { get; set; } = "";
@@ -47,6 +48,7 @@ public sealed class Track
         var previous = Current;
         Current = Math.Clamp(Current + delta, Minimum, Maximum);
         History.Add(new(DateTimeOffset.UtcNow, previous, Current, reason));
+        if (History.Count > MaxHistoryEntries) History.RemoveAt(0);
     }
 
     public bool Undo()

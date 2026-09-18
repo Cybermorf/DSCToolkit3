@@ -8,6 +8,8 @@ namespace DSC.Toolkit.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
+    private const int MaxVisibleRolls = 100;
+    private const int MaxPersistedRolls = 1000;
     private readonly CampaignStorage _storage = new();
     private readonly IDiceService _dice = new DiceService();
 
@@ -39,6 +41,7 @@ public partial class MainViewModel : ObservableObject
         Campaign = new Campaign();
         VisibleRecords.Clear();
         Rolls.Clear();
+        SelectedRecord = null;
         Status = "New campaign created";
     }
 
@@ -74,7 +77,11 @@ public partial class MainViewModel : ObservableObject
             var mode = Enum.TryParse<RollMode>(modeName, true, out var parsed) ? parsed : RollMode.Normal;
             var result = _dice.Roll(DiceExpression, DiceLabel, mode);
             Campaign.RollHistory.Add(result);
+            if (Campaign.RollHistory.Count > MaxPersistedRolls)
+                Campaign.RollHistory.RemoveRange(0, Campaign.RollHistory.Count - MaxPersistedRolls);
+
             Rolls.Insert(0, result);
+            while (Rolls.Count > MaxVisibleRolls) Rolls.RemoveAt(Rolls.Count - 1);
             Status = $"Rolled {result.Total}";
         }
         catch (Exception ex) when (ex is FormatException or InvalidOperationException)
@@ -91,11 +98,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void Search()
-    {
-        var count = _storage.Search(Campaign, SearchText).Count();
-        Status = $"{count} matching record(s)";
-    }
+    private void Search() => Status = $"{_storage.CountMatches(Campaign, SearchText)} matching record(s)";
 
     private void RefreshRecords()
     {

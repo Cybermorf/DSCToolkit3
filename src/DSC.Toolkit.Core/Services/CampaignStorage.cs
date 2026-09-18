@@ -7,6 +7,7 @@ public sealed class CampaignStorage
 {
     public const int CurrentSchemaVersion = 1;
     private readonly JsonSerializerOptions _json = new() { WriteIndented = true, PropertyNameCaseInsensitive = true };
+    private readonly SemaphoreSlim _saveGate = new(1, 1);
     public string DataRoot { get; }
 
     public CampaignStorage(string? dataRoot = null)
@@ -18,28 +19,46 @@ public sealed class CampaignStorage
 
     public async Task SaveAsync(Campaign campaign, CancellationToken cancellationToken = default)
     {
-        campaign.SchemaVersion = CurrentSchemaVersion;
-        campaign.ModifiedUtc = DateTimeOffset.UtcNow;
-        var path = GetPath(campaign.Id);
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        Directory.CreateDirectory(Path.Combine(DataRoot, "Backups"));
-        var temporary = path + ".tmp";
-        await using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
-            await JsonSerializer.SerializeAsync(stream, campaign, _json, cancellationToken);
-        if (File.Exists(path))
+        await _saveGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            var backup = Path.Combine(DataRoot, "Backups", $"{campaign.Id:N}-{DateTime.UtcNow:yyyyMMddHHmmss}.json");
-            File.Copy(path, backup, true);
-            File.Move(temporary, path, true);
-            RotateBackups(campaign.Id, 10);
+            campaign.SchemaVersion = CurrentSchemaVersion;
+            campaign.ModifiedUtc = DateTimeOffset.UtcNow;
+            var path = GetPath(campaign.Id);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            Directory.CreateDirectory(Path.Combine(DataRoot, "Backups"));
+            var temporary = path + ".tmp";
+
+            // Serialize away from the UI thread. The save gate prevents concurrent saves
+            // from overwriting each other's temporary file.
+            var payload = await Task.Run(
+                () => JsonSerializer.SerializeToUtf8Bytes(campaign, _json),
+                cancellationToken).ConfigureAwait(false);
+
+            await using (var stream = new FileStream(
+                temporary, FileMode.Create, FileAccess.Write, FileShare.None, 64 * 1024,
+                FileOptions.Asynchronous | FileOptions.SequentialScan))
+            {
+                await stream.WriteAsync(payload, cancellationToken).ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            // File.Copy, File.Move, directory enumeration, and deletion are synchronous
+            // APIs; keep them off the WinUI thread.
+            await Task.Run(() => CommitFiles(path, temporary, campaign.Id), cancellationToken)
+                .ConfigureAwait(false);
         }
-        else File.Move(temporary, path);
+        finally
+        {
+            _saveGate.Release();
+        }
     }
 
     public async Task<Campaign> LoadAsync(string path, CancellationToken cancellationToken = default)
     {
-        await using var stream = File.OpenRead(path);
-        var campaign = await JsonSerializer.DeserializeAsync<Campaign>(stream, _json, cancellationToken)
+        await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        var campaign = await JsonSerializer.DeserializeAsync<Campaign>(stream, _json, cancellationToken).ConfigureAwait(false)
             ?? throw new InvalidDataException("The campaign file contains no campaign data.");
         if (campaign.SchemaVersion > CurrentSchemaVersion) throw new NotSupportedException($"Schema {campaign.SchemaVersion} is newer than this application supports.");
         return campaign;
@@ -47,25 +66,54 @@ public sealed class CampaignStorage
 
     public async Task<Campaign> ImportAsync(string path, bool replaceIdentity = false, CancellationToken cancellationToken = default)
     {
-        var campaign = await LoadAsync(path, cancellationToken);
+        var campaign = await LoadAsync(path, cancellationToken).ConfigureAwait(false);
         if (!replaceIdentity) campaign.Id = Guid.NewGuid();
-        await SaveAsync(campaign, cancellationToken);
+        await SaveAsync(campaign, cancellationToken).ConfigureAwait(false);
         return campaign;
     }
 
     public IEnumerable<string> Search(Campaign campaign, string query)
     {
         if (string.IsNullOrWhiteSpace(query)) return [];
-        return campaign.Records.Where(r =>
-            r.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-            r.Tags.Any(t => t.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
-            r.Fields.Any(f => f.Key.Contains(query, StringComparison.OrdinalIgnoreCase) || f.Value.Contains(query, StringComparison.OrdinalIgnoreCase)))
-            .Select(r => $"{r.ModuleId} / {r.Name}");
+        return campaign.Records.Where(record => Matches(record, query))
+            .Select(record => $"{record.ModuleId} / {record.Name}");
+    }
+
+    public int CountMatches(Campaign campaign, string query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return 0;
+        return campaign.Records.Count(record => Matches(record, query));
+    }
+
+    private static bool Matches(ToolRecord record, string query) =>
+        record.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        record.Tags.Any(tag => tag.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+        record.Fields.Any(field => field.Key.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                                   field.Value.Contains(query, StringComparison.OrdinalIgnoreCase));
+
+    private void CommitFiles(string path, string temporary, Guid id)
+    {
+        if (File.Exists(path))
+        {
+            var backup = Path.Combine(DataRoot, "Backups", $"{id:N}-{DateTime.UtcNow:yyyyMMddHHmmssfff}.json");
+            File.Copy(path, backup, true);
+            File.Move(temporary, path, true);
+            RotateBackups(id, 10);
+        }
+        else
+        {
+            File.Move(temporary, path);
+        }
     }
 
     private void RotateBackups(Guid id, int keep)
     {
         var folder = Path.Combine(DataRoot, "Backups");
-        foreach (var old in Directory.EnumerateFiles(folder, $"{id:N}-*.json").OrderByDescending(File.GetCreationTimeUtc).Skip(keep)) File.Delete(old);
+        foreach (var old in Directory.EnumerateFiles(folder, $"{id:N}-*.json")
+                     .OrderByDescending(File.GetLastWriteTimeUtc)
+                     .Skip(keep))
+        {
+            File.Delete(old);
+        }
     }
 }
