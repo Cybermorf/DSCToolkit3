@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reflection;
 using Microsoft.UI.Xaml;
 
@@ -50,7 +49,7 @@ public partial class App : Application
         args.Handled = false;
     }
 
-    private static void OnDomainUnhandledException(object? sender, UnhandledExceptionEventArgs args)
+    private static void OnDomainUnhandledException(object? sender, System.UnhandledExceptionEventArgs args)
     {
         if (args.ExceptionObject is Exception exception)
             StartupDiagnostics.WriteException("AppDomain unhandled exception", exception);
@@ -85,7 +84,6 @@ internal static class StartupDiagnostics
         }
         catch
         {
-            // Diagnostics must never prevent the application from starting.
         }
     }
 
@@ -101,10 +99,7 @@ internal static class StartupDiagnostics
         }
     }
 
-    public static void WriteException(string stage, Exception exception)
-    {
-        Write($"{stage}:{Environment.NewLine}{exception}{Environment.NewLine}");
-    }
+    public static void WriteException(string stage, Exception exception) => Write($"{stage}:{Environment.NewLine}{exception}{Environment.NewLine}");
 
     private static string EnvironmentReport()
     {
