@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:core="using:DSC.Toolkit.Core.Models"
-    xmlns:services="using:DSC.Toolkit.Core.Services"
     xmlns:controls="using:DSC.Toolkit.Controls"
     Title="The Dark Sun Chronicles - DMG Companion">
     <Grid Background="{StaticResource PageBackgroundBrush}">
@@ -51,7 +50,7 @@
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="{x:Bind ViewModel.SelectedTool.Name, Mode=OneWay, FallbackValue='Select a tool'}" FontSize="24"/>
+                                <TextBlock Text="{x:Bind ViewModel.SelectedTool.Name, Mode=OneWay, FallbackValue=Select a tool}" FontSize="24"/>
                                 <TextBlock Text="{x:Bind ViewModel.SelectedTool.Description, Mode=OneWay}" Foreground="{StaticResource SecondaryTextBrush}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
@@ -80,14 +79,11 @@
                             </StackPanel>
                             <ListView ItemsSource="{x:Bind ViewModel.Rolls}" MaxHeight="180">
                                 <ListView.ItemTemplate>
-                                    <DataTemplate x:DataType="services:DiceRoll">
+                                    <DataTemplate x:DataType="core:DiceRoll">
                                         <Grid ColumnSpacing="8" Padding="2">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{x:Bind Expression}" />
-                                            <TextBlock Grid.Column="1" Text="{x:Bind Total}" FontWeight="SemiBold" />
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="{x:Bind Expression}"/>
+                                            <TextBlock Grid.Column="1" Text="{x:Bind Total}" FontWeight="SemiBold"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
