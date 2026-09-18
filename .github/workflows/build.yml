@@ -54,11 +54,36 @@ jobs:
       - name: Restore application
         run: dotnet restore src/DSC.Toolkit/DSC.Toolkit.csproj -r ${{ matrix.runtime }}
       - name: Publish self-contained application
-        run: dotnet publish src/DSC.Toolkit/DSC.Toolkit.csproj -c Release -r ${{ matrix.runtime }} --self-contained true --no-restore -o artifacts/${{ matrix.runtime }}
+        run: >
+          dotnet publish
+          src/DSC.Toolkit/DSC.Toolkit.csproj
+          -c Release
+          -r ${{ matrix.runtime }}
+          --self-contained true
+          --no-restore
+          -o artifacts/${{ matrix.runtime }}
       - name: Verify executable exists
         shell: pwsh
-        run: if (-not (Test-Path "artifacts/${{ matrix.runtime }}/DSC.Toolkit.exe")) { throw "Published executable was not created." }
-      - uses: actions/upload-artifact@v4
+        run: |
+          $exe = "artifacts/${{ matrix.runtime }}/DSC.Toolkit.exe"
+          if (-not (Test-Path $exe)) { throw "Published executable was not created: $exe" }
+          Write-Host "Executable found: $exe"
+      - name: Verify Windows App SDK runtime
+        shell: pwsh
+        run: |
+          $output = "artifacts/${{ matrix.runtime }}"
+          $required = @(
+            "Microsoft.UI.Xaml.dll",
+            "Microsoft.WindowsAppRuntime.dll",
+            "Microsoft.WindowsAppRuntime.Bootstrap.dll"
+          )
+          foreach ($file in $required) {
+            $path = Join-Path $output $file
+            if (-not (Test-Path $path)) { throw "Required Windows App SDK runtime file is missing: $file" }
+            Write-Host "Verified: $file"
+          }
+      - name: Upload application
+        uses: actions/upload-artifact@v4
         with:
           name: DSC-Toolkit-${{ matrix.arch }}
           path: artifacts/${{ matrix.runtime }}/
