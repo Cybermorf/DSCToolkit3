@@ -7,7 +7,11 @@
     xmlns:controls="using:DSC.Toolkit.Controls"
     Title="The Dark Sun Chronicles - DMG Companion">
     <Grid Background="{StaticResource PageBackgroundBrush}">
-        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
         <Border Grid.Row="0" Background="#FF10261E" BorderBrush="{StaticResource GoldBrush}" BorderThickness="0,0,0,1" Padding="20,12">
             <Grid ColumnSpacing="16">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="280"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -19,16 +23,15 @@
                 <Button Grid.Column="2" Content="Search" Command="{x:Bind ViewModel.SearchCommand}"/>
             </Grid>
         </Border>
-
         <NavigationView Grid.Row="1" x:Name="Navigation" PaneDisplayMode="LeftCompact" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" SelectionChanged="Navigation_SelectionChanged" Background="Transparent">
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Luminaris" Tag="luminaris" Icon="Calendar"/>
-                <NavigationViewItem Content="Umbraria" Tag="umbraria" Icon="People"/>
-                <NavigationViewItem Content="Eternum" Tag="eternum" Icon="Clock"/>
-                <NavigationViewItem Content="Solara" Tag="solara" Icon="World"/>
-                <NavigationViewItem Content="Aetheria" Tag="aetheria" Icon="Map"/>
-                <NavigationViewItem Content="Harmonia" Tag="harmonia" Icon="Repair"/>
-                <NavigationViewItem Content="Celestia" Tag="celestia" Icon="Favorite"/>
+                <NavigationViewItem Content="Luminaris" Tag="luminaris"><NavigationViewItem.Icon><SymbolIcon Symbol="Home"/></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Content="Umbraria" Tag="umbraria"><NavigationViewItem.Icon><SymbolIcon Symbol="People"/></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Content="Eternum" Tag="eternum"><NavigationViewItem.Icon><SymbolIcon Symbol="Clock"/></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Content="Solara" Tag="solara"><NavigationViewItem.Icon><SymbolIcon Symbol="Globe"/></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Content="Aetheria" Tag="aetheria"><NavigationViewItem.Icon><SymbolIcon Symbol="Map"/></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Content="Harmonia" Tag="harmonia"><NavigationViewItem.Icon><SymbolIcon Symbol="Setting"/></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Content="Celestia" Tag="celestia"><NavigationViewItem.Icon><SymbolIcon Symbol="Favorite"/></NavigationViewItem.Icon></NavigationViewItem>
             </NavigationView.MenuItems>
             <Grid Padding="18" ColumnSpacing="18">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="260"/><ColumnDefinition Width="*"/><ColumnDefinition Width="320"/></Grid.ColumnDefinitions>
@@ -44,14 +47,13 @@
                         <Button Content="Add record" Command="{x:Bind ViewModel.AddRecordCommand}" HorizontalAlignment="Stretch"/>
                     </StackPanel>
                 </Border>
-
                 <Border Grid.Column="1" Style="{StaticResource PanelStyle}">
                     <Grid RowSpacing="12">
                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="180"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="{x:Bind ViewModel.SelectedTool.Name, Mode=OneWay, FallbackValue=Select a tool}" FontSize="24"/>
+                                <TextBlock Text="{x:Bind ViewModel.SelectedTool.Name, Mode=OneWay}" FontSize="24"/>
                                 <TextBlock Text="{x:Bind ViewModel.SelectedTool.Description, Mode=OneWay}" Foreground="{StaticResource SecondaryTextBrush}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
@@ -66,7 +68,6 @@
                         <controls:RecordEditor x:Name="Editor" Grid.Row="3" Margin="0,12,0,0"/>
                     </Grid>
                 </Border>
-
                 <StackPanel Grid.Column="2" Spacing="18">
                     <Border Style="{StaticResource PanelStyle}">
                         <StackPanel Spacing="10">
