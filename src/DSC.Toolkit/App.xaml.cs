@@ -13,6 +13,7 @@ public partial class App : Application
 
         try
         {
+            // CI rebuild trigger: current branch artifact should be tested from a fresh build.
             InitializeComponent();
             UnhandledException += OnUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
