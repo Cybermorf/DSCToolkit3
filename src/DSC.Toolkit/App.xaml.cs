@@ -1,6 +1,5 @@
 using System.Reflection;
 using Microsoft.UI.Xaml;
-using Microsoft.WindowsAppSDK;
 
 namespace DSC.Toolkit;
 
@@ -14,7 +13,6 @@ public partial class App : Application
 
         try
         {
-            Bootstrap.Initialize();
             InitializeComponent();
             UnhandledException += OnUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
