@@ -13,6 +13,10 @@ public partial class App : Application
 
         try
         {
+            // Required for unpackaged WinUI 3 / Windows App SDK apps.
+            // This must happen before InitializeComponent() creates any WinUI XAML objects.
+            Microsoft.WindowsAppRuntime.Bootstrapper.Initialize();
+
             InitializeComponent();
             UnhandledException += OnUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
