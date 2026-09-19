@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.UI.Xaml;
+using Microsoft.WindowsAppSDK;
 
 namespace DSC.Toolkit;
 
@@ -13,10 +14,7 @@ public partial class App : Application
 
         try
         {
-            // Required for unpackaged WinUI 3 / Windows App SDK apps.
-            // This must happen before InitializeComponent() creates any WinUI XAML objects.
-            Microsoft.WindowsAppRuntime.Bootstrapper.Initialize();
-
+            Bootstrap.Initialize();
             InitializeComponent();
             UnhandledException += OnUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
