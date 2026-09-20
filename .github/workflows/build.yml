@@ -1,14 +1,11 @@
 name: Build and test
-
 on:
   push:
     branches: [ main, master ]
   pull_request:
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   test:
     name: Core tests
@@ -31,7 +28,6 @@ jobs:
         with:
           name: test-results
           path: '**/TestResults/*.trx'
-
   publish:
     name: Windows ${{ matrix.arch }}
     needs: test
@@ -72,11 +68,7 @@ jobs:
         shell: pwsh
         run: |
           $output = "artifacts/${{ matrix.runtime }}"
-          $required = @(
-            "Microsoft.UI.Xaml.dll",
-            "Microsoft.WindowsAppRuntime.dll",
-            "Microsoft.WindowsAppRuntime.Bootstrap.dll"
-          )
+          $required = @("Microsoft.UI.Xaml.dll","Microsoft.WindowsAppRuntime.dll","Microsoft.WindowsAppRuntime.Bootstrap.dll")
           foreach ($file in $required) {
             $path = Join-Path $output $file
             if (-not (Test-Path $path)) { throw "Required Windows App SDK runtime file is missing: $file" }
